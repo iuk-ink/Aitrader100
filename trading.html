@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AI策略交易系统</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="layout">
+      <div class="topbar">
+        <div class="topbar__item"><span class="label">BTC/USDT</span><span class="value" id="pr_BTCUSDT">—</span></div>
+        <div class="topbar__item"><span class="label">ETH/USDT</span><span class="value" id="pr_ETHUSDT">—</span></div>
+        <div class="topbar__item"><span class="label">SOL/USDT</span><span class="value" id="pr_SOLUSDT">—</span></div>
+        <div class="topbar__item"><span class="label">BNB/USDT</span><span class="value" id="pr_BNBUSDT">—</span></div>
+        <div class="topbar__item"><span class="label">DOGE/USDT</span><span class="value" id="pr_DOGEUSDT">—</span></div>
+        <div class="topbar__item"><span class="label">XRP/USDT</span><span class="value" id="pr_XRPUSDT">—</span></div>
+        <div class="topbar__item"><span class="label">ZEC/USDT</span><span class="value" id="pr_ZECUSDT">—</span></div>
+        <div class="topbar__item"><span class="label">SOON/USDT</span><span class="value" id="pr_SOONUSDT">—</span></div>
+        <div class="topbar__item"><span class="label">DASH/USDT</span><span class="value" id="pr_DASHUSDT">—</span></div>
+        <div class="topbar__item"><span class="label">LTC/USDT</span><span class="value" id="pr_LTCUSDT">—</span></div>
+        <div class="topbar__item"><span class="label">ASTER/USDT</span><span class="value" id="pr_ASTERUSDT">—</span></div>
+        <div class="topbar__item"><span class="label">SUI/USDT</span><span class="value" id="pr_SUIUSDT">—</span></div>
+        
+      </div>
+      <div class="col col-1">
+        <div class="stack">
+      <div class="panel">
+        <div class="panel__title">所有 BTC/USDT 数据</div>
+        <pre id="textBox" class="panel__text" aria-live="polite">正在连接币安并载入数据...</pre>
+        <div class="panel__footer">
+          <span id="status">状态：初始化</span>
+          <span id="lastUpdated" class="right">最后更新：—</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel__title">所有 ETH/USDT 数据</div>
+        <pre id="textBoxEth" class="panel__text" aria-live="polite">正在连接币安并载入数据...</pre>
+        <div class="panel__footer">
+          <span id="statusEth">状态：初始化</span>
+          <span id="lastUpdatedEth" class="right">最后更新：—</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel__title">所有 SOL/USDT 数据</div>
+        <pre id="textBoxSol" class="panel__text" aria-live="polite">正在连接币安并载入数据...</pre>
+        <div class="panel__footer">
+          <span id="statusSol">状态：初始化</span>
+          <span id="lastUpdatedSol" class="right">最后更新：—</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel__title">所有 BNB/USDT 数据</div>
+        <pre id="textBoxBnb" class="panel__text" aria-live="polite">正在连接币安并载入数据...</pre>
+        <div class="panel__footer">
+          <span id="statusBnb">状态：初始化</span>
+          <span id="lastUpdatedBnb" class="right">最后更新：—</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel__title">所有 DOGE/USDT 数据</div>
+        <pre id="textBoxDoge" class="panel__text" aria-live="polite">正在连接币安并载入数据...</pre>
+        <div class="panel__footer">
+          <span id="statusDoge">状态：初始化</span>
+          <span id="lastUpdatedDoge" class="right">最后更新：—</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel__title">所有 XRP/USDT 数据</div>
+        <pre id="textBoxXrp" class="panel__text" aria-live="polite">正在连接币安并载入数据...</pre>
+        <div class="panel__footer">
+          <span id="statusXrp">状态：初始化</span>
+          <span id="lastUpdatedXrp" class="right">最后更新：—</span>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel__title">所有 ZEC/USDT 数据</div>
+        <pre id="textBoxZec" class="panel__text" aria-live="polite">正在连接币安并载入数据...</pre>
+        <div class="panel__footer">
+          <span id="statusZec">状态：初始化</span>
+          <span id="lastUpdatedZec" class="right">最后更新：—</span>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel__title">所有 SOON/USDT 数据</div>
+        <pre id="textBoxSoon" class="panel__text" aria-live="polite">正在连接币安并载入数据...</pre>
+        <div class="panel__footer">
+          <span id="statusSoon">状态：初始化</span>
+          <span id="lastUpdatedSoon" class="right">最后更新：—</span>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel__title">所有 DASH/USDT 数据</div>
+        <pre id="textBoxDash" class="panel__text" aria-live="polite">正在连接币安并载入数据...</pre>
+        <div class="panel__footer">
+          <span id="statusDash">状态：初始化</span>
+          <span id="lastUpdatedDash" class="right">最后更新：—</span>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel__title">所有 LTC/USDT 数据</div>
+        <pre id="textBoxLtc" class="panel__text" aria-live="polite">正在连接币安并载入数据...</pre>
+        <div class="panel__footer">
+          <span id="statusLtc">状态：初始化</span>
+          <span id="lastUpdatedLtc" class="right">最后更新：—</span>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel__title">所有 ASTER/USDT 数据</div>
+        <pre id="textBoxAster" class="panel__text" aria-live="polite">正在连接币安并载入数据...</pre>
+        <div class="panel__footer">
+          <span id="statusAster">状态：初始化</span>
+          <span id="lastUpdatedAster" class="right">最后更新：—</span>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel__title">所有 SUI/USDT 数据</div>
+        <pre id="textBoxSui" class="panel__text" aria-live="polite">正在连接币安并载入数据...</pre>
+        <div class="panel__footer">
+          <span id="statusSui">状态：初始化</span>
+          <span id="lastUpdatedSui" class="right">最后更新：—</span>
+        </div>
+      </div>
+        </div>
+      </div>
+
+      <div class="col col-2">
+        <div class="stack">
+        <!-- 全局设置（精简：移除主题/语言选择，仅保留实盘配置） -->
+        <div class="panel ai-panel settings-panel">
+          <div class="panel__title" data-i18n="settings_title">全局设置</div>
+          <div class="ai-row">
+            <label>数据状态：</label>
+            <span class="status-group"><span id="wsDot" class="status-dot"></span><span class="status-label">WS链接状态</span><span id="apiDot" class="status-dot"></span><span class="status-label">API链接状态</span></span>
+          </div>
+          <!-- 实盘（U本位合约）配置 -->
+          
+          <div class="ai-row">
+            <label for="liveApiKey">Binance API Key</label>
+            <input id="liveApiKey" type="password" placeholder="输入你的 API Key" />
+          </div>
+          <div class="ai-row">
+            <label for="liveApiSecret">Binance Secret</label>
+            <input id="liveApiSecret" type="password" placeholder="输入你的 Secret" />
+          </div>
+          <div class="ai-row">
+            <label class="inline" for="feeMakerInput">手续费率（挂单）</label>
+            <input id="feeMakerInput" type="text" placeholder="0.02%" value="0.02%" />
+            <label class="inline" for="feeTakerInput">手续费率（吃单）</label>
+            <input id="feeTakerInput" type="text" placeholder="0.05%" value="0.05%" />
+          </div>
+          <div class="ai-row">
+            <button id="saveLiveCfgBtn" class="primary">保存并启用实盘</button>
+          </div>
+        </div>
+        <div class="panel ai-panel">
+          <div class="panel__title" data-i18n="ai_panel_title">AI 交互模块</div>
+          <div class="ai-row">
+            <label for="aiProvider" data-i18n="label_choose_ai">选择AI</label>
+            <select id="aiProvider">
+              <option value="gemini_flash" selected data-i18n="provider_gemini">Gemini 2.5 Pro</option>
+              <option value="deepseek" data-i18n="provider_deepseek">DeepSeek V3.2</option>
+              <option value="qwen" data-i18n="provider_qwen">Qwen3 Max</option>
+              <option value="openai" disabled data-i18n="provider_openai">更多模型（待定）</option>
+            </select>
+          </div>
+          <div class="ai-row">
+            <label for="apiKey">API Key</label>
+            <input id="apiKey" type="password" placeholder="粘贴你的API Key" data-i18n-placeholder="api_key_placeholder" />
+            <button id="saveKeyBtn" data-i18n="btn_save_key">保存Key</button>
+          </div>
+          <div class="ai-row column">
+            <label for="ruleInput" data-i18n="label_rule">自定义策略</label>
+            <textarea id="ruleInput" rows="5" placeholder="在此输入你的策略规则，例如：短线机会、中长线稳定获利…" data-i18n-placeholder="rule_placeholder"></textarea>
+            <div class="ai-actions">
+              <button id="saveRuleBtn" data-i18n="btn_save_rule">保存规则</button>
+              <button id="clearRuleBtn" data-i18n="btn_clear_rule">清空</button>
+              <button id="optPromptBtn" data-i18n="btn_opt_prompt">AI优化提示词</button>
+              <span id="optPromptStatus" class="muted">优化状态：就绪</span>
+            </div>
+          </div>
+          <div class="ai-row column">
+            <label for="ruleHistoryList" data-i18n="label_history_rule">历史规则</label>
+            <ul id="ruleHistoryList" class="history-list"></ul>
+          </div>
+          <div class="ai-row data-row column">
+            <div class="row-head"><span class="label-inline" data-i18n="label_data_select">交易对选择</span><span class="muted tip">最多同时支持6个交易对进行AI分析</span></div>
+            <div class="checkboxes" id="dataSelectGroup">
+              <label><input type="checkbox" value="BTCUSDT" checked />BTCUSDT</label>
+              <label><input type="checkbox" value="ETHUSDT" checked />ETHUSDT</label>
+              <label><input type="checkbox" value="SOLUSDT" />SOLUSDT</label>
+              <label><input type="checkbox" value="BNBUSDT" />BNBUSDT</label>
+              <label><input type="checkbox" value="DOGEUSDT" />DOGEUSDT</label>
+              <label><input type="checkbox" value="XRPUSDT" />XRPUSDT</label>
+              <label><input type="checkbox" value="ZECUSDT" />ZECUSDT</label>
+              <label><input type="checkbox" value="SOONUSDT" />SOONUSDT</label>
+              <label><input type="checkbox" value="DASHUSDT" />DASHUSDT</label>
+              <label><input type="checkbox" value="LTCUSDT" />LTCUSDT</label>
+              <label><input type="checkbox" value="ASTERUSDT" />ASTERUSDT</label>
+              <label><input type="checkbox" value="SUIUSDT" />SUIUSDT</label>
+            </div>
+          </div>
+          <div class="ai-row send-row">
+            <button id="sendOnceBtn" class="primary" data-i18n="btn_send_once">发送一次</button>
+            <select id="autoIntervalSelect">
+              <option value="3" selected data-i18n="min_3">3分钟</option>
+              <option value="5" data-i18n="min_5">5分钟</option>
+              <option value="10" data-i18n="min_10">10分钟</option>
+              <option value="30" data-i18n="min_30">30分钟</option>
+              <option value="60" data-i18n="min_60">60分钟</option>
+            </select>
+            <button id="autoSendBtn">定时自动发送：关闭</button>
+          </div>
+          <div class="ai-row status-row">
+            <span id="aiStatus" class="muted" data-i18n="ai_status_waiting">状态：等待中</span>
+          </div>
+          <pre id="aiOutput" class="panel__text small" aria-live="polite" data-i18n="ai_output_placeholder">AI输出将在此显示…</pre>
+        </div>
+        <div class="panel ai-panel">
+          <div class="panel__title" data-i18n="ai_parse_title">AI 建议解析与执行</div>
+          <div class="ai-row">
+            <button id="parseOnceBtn" class="primary" data-i18n="btn_parse_once">解析并执行一次</button>
+            <button id="autoExecBtn">跟随AI刷新自动执行：关闭</button>
+          </div>
+          <div class="ai-row status-row">
+            <span id="aiOpsStatus" class="muted" data-i18n="parse_status_wait">解析状态：等待</span>
+          </div>
+          <pre id="aiOpsLog" class="panel__text small" aria-live="polite" data-i18n="ai_ops_log_placeholder">解析日志将显示在此…</pre>
+        </div>
+        <!-- 新增：AI命令执行记录（展示最近200条，滚动显示50行高度） -->
+        <div class="panel ai-panel">
+          <div class="panel__title" data-i18n="ai_cmd_log_title">AI 命令执行记录</div>
+          <pre id="aiCmdLog" class="panel__text small scroll-rows-50" aria-live="polite" data-i18n="ai_cmd_log_placeholder">暂无记录…</pre>
+        </div>
+        </div>
+      </div>
+
+      <div class="col col-3">
+        <div class="stack">
+          <div class="panel contract-panel">
+          <div class="panel__title">合约实盘（USDT本位·全仓模式）</div>
+          <div class="chart-wrap"><canvas id="balanceChart"></canvas></div>
+          <div class="contract-form">
+            <div class="form-actions">
+              <button id="cancelAllBtn">撤销全部委托</button>
+              <button id="closeAllBtn">平所有持仓</button>
+              <button id="aiAutoSwitchBtn">AI自动操盘：关闭</button>
+            </div>
+            <div id="simStatus" class="muted">状态：等待</div>
+          </div>
+
+          <div class="account-box" id="accountBox">
+            <div class="item"><div class="label">余额（USDT）</div><div class="value" id="accBalance">—</div></div>
+            <div class="item"><div class="label">账户权益</div><div class="value" id="accEquity">—</div></div>
+            <div class="item"><div class="label">已用保证金</div><div class="value" id="accUsedMargin">—</div></div>
+            <div class="item"><div class="label">可用保证金</div><div class="value" id="accAvail">—</div></div>
+            <div class="item"><div class="label">未实现盈亏</div><div class="value" id="accUpnl">—</div></div>
+            
+          </div>
+
+          
+
+          <div class="tables">
+            <div class="table-block">
+              <div class="table-title">当前持仓</div>
+              <div id="positionsWrap" class="table-scroll scroll-rows-50">
+              <table class="grid-table" id="positionsTable">
+                <thead>
+                  <tr>
+                    <th>交易对</th><th>方向</th><th>数量</th><th>均价</th><th>杠杆</th><th>未实现盈亏</th><th>保证金</th><th>操作</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+              </div>
+            </div>
+
+            <div class="table-block">
+              <div class="table-title">当前委托</div>
+              <div id="openOrdersWrap" class="table-scroll scroll-rows-50">
+              <table class="grid-table" id="openOrdersTable">
+                <thead>
+                  <tr>
+                    <th>时间</th><th>交易对</th><th>方向</th><th>类型</th><th>价格</th><th>数量</th><th>状态</th><th>操作</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+              </div>
+            </div>
+
+            <!-- 委托历史已移除（应用户要求，实盘数据不展示委托历史） -->
+
+            
+          </div>
+          </div>
+        </div>
+      </div>
+      <!-- 底部通条价格栏（美观增强） -->
+      <div class="bottombar">
+        <div class="bottombar__item"><span class="label">BTC/USDT</span><span class="value" id="pr2_BTCUSDT">—</span></div>
+        <div class="bottombar__item"><span class="label">ETH/USDT</span><span class="value" id="pr2_ETHUSDT">—</span></div>
+        <div class="bottombar__item"><span class="label">SOL/USDT</span><span class="value" id="pr2_SOLUSDT">—</span></div>
+        <div class="bottombar__item"><span class="label">BNB/USDT</span><span class="value" id="pr2_BNBUSDT">—</span></div>
+        <div class="bottombar__item"><span class="label">DOGE/USDT</span><span class="value" id="pr2_DOGEUSDT">—</span></div>
+        <div class="bottombar__item"><span class="label">XRP/USDT</span><span class="value" id="pr2_XRPUSDT">—</span></div>
+        <div class="bottombar__item"><span class="label">ZEC/USDT</span><span class="value" id="pr2_ZECUSDT">—</span></div>
+        <div class="bottombar__item"><span class="label">SOON/USDT</span><span class="value" id="pr2_SOONUSDT">—</span></div>
+        <div class="bottombar__item"><span class="label">DASH/USDT</span><span class="value" id="pr2_DASHUSDT">—</span></div>
+        <div class="bottombar__item"><span class="label">LTC/USDT</span><span class="value" id="pr2_LTCUSDT">—</span></div>
+        <div class="bottombar__item"><span class="label">ASTER/USDT</span><span class="value" id="pr2_ASTERUSDT">—</span></div>
+        <div class="bottombar__item"><span class="label">SUI/USDT</span><span class="value" id="pr2_SUIUSDT">—</span></div>
+        
+      </div>
+    </div>
+
+    <script src="main.js"></script>
+  </body>
+  </html>
+
