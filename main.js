@@ -158,6 +158,8 @@
   let latestLiveOpenOrders = [];
   let latestMakerRate = null;
   let latestTakerRate = null;
+  let autoCloseEnabled = false;
+  let autoCloseThreshold = 0;
   // 解析百分数字符串到小数费率（如 "0.02%" -> 0.0002，"0.0002" -> 0.0002）
   function parsePercentRate(str){
     if (str==null) return null;
@@ -341,6 +343,7 @@ async function fetchLiveTrades(symbols, limit=50){
       try { window.dispatchEvent(new CustomEvent('equity_update')); } catch {}
       // 使用手动输入手续费作为来源（不再读取账户返回的费率）
       updateLatestFeeRatesFromInputs();
+      try { maybeAutoClose(); } catch {}
     } catch{}
   }
 
@@ -599,8 +602,16 @@ function renderLiveTradeHistory(list){
             const sig2 = await hmacSha256Hex(apiSecret, qs2);
             const url2 = base + String(path || '') + '?' + qs2 + '&signature=' + sig2;
             const res2 = await fetch(url2, { method: m, headers });
-            if (!res2.ok){ let txt=''; try{ txt=await res2.text(); }catch{} throw new Error(txt || (res2.status+' '+res2.statusText)); }
+            if (!res2.ok){
+              let txt=''; let p2=null; try{ p2=await res2.json(); }catch{}
+              if (p2 && (p2.code || p2.msg || p2.message)) throw new Error(`${p2.code??res2.status} ${p2.msg||p2.message||res2.statusText}`);
+              try{ txt=await res2.text(); }catch{}
+              throw new Error(txt || (res2.status+' '+res2.statusText));
+            }
             return await res2.json();
+          }
+          if (payload && (payload.code || payload.msg || payload.message)){
+            throw new Error(`${payload.code??res.status} ${payload.msg||payload.message||res.statusText}`);
           }
           let txt = ''; try { txt = await res.text(); } catch {}
           throw new Error(txt || (res.status+' '+res.statusText));
@@ -668,6 +679,7 @@ function renderLiveTradeHistory(list){
       symbolFiltersCache[sym] = {
         tickSize: Number(pf.tickSize||0) || null,
         minPrice: Number(pf.minPrice||0) || null,
+        maxPrice: Number(pf.maxPrice||0) || null,
         stepSize: Number(lot.stepSize||0) || null,
         minQty: Number(lot.minQty||0) || null,
         mktStepSize: Number(mkt.stepSize||0) || null,
@@ -794,6 +806,13 @@ function renderLiveTradeHistory(list){
         baseParams.timeInForce = 'GTC';
         baseParams.quantity = qNorm;
         baseParams.price = roundTick(price, tick);
+        const f = getFiltersForSymbol(symbol) || {};
+        if (isFinite(Number(f.minPrice)) && Number(f.minPrice) > 0 && baseParams.price < Number(f.minPrice) - 1e-12) {
+          throw new Error(`价格过低：最低 ${f.minPrice}`);
+        }
+        if (isFinite(Number(f.maxPrice)) && Number(f.maxPrice) > 0 && baseParams.price > Number(f.maxPrice) + 1e-12) {
+          throw new Error(`价格过高：最高 ${f.maxPrice}`);
+        }
         // MIN_NOTIONAL 校验（price * qty）
         const mn = minNotionalForSymbol(symbol);
         if (mn>0 && baseParams.price * baseParams.quantity < mn - 1e-9) {
@@ -1019,7 +1038,7 @@ function renderLiveTradeHistory(list){
     if (!Array.isArray(ops) || !ops.length) return;
     // 重用策略约束过滤
     const { validOps, invalidOps } = enforceAiPolicyOnOps(ops);
-    if (!validOps.length){ setSimStatus('状态：策略不合规（全部被过滤：禁止限价，需市价+TP/SL）'); return; }
+        if (!validOps.length){ setSimStatus('状态：策略不合规（全部被过滤：开仓需包含SL）'); return; }
     for (const op of validOps){
       try {
         await execLiveOp(op);
@@ -1035,6 +1054,7 @@ function renderLiveTradeHistory(list){
   const TRADE_LOG_KEY = 'trade_history_log_v1';
   const AI_CMD_LOG_KEY = 'ai_cmd_exec_log_v1';
   const AUTO_UPTIME_KEY = 'ai_auto_uptime_v1';
+  const AUTO_CLOSE_CFG_KEY = 'auto_close_cfg_v1';
   let autoUptimeStart = 0; // 正在计时的起点（0表示未计时）
   let autoUptimeAccum = 0; // 累积毫秒数
   try {
@@ -1109,6 +1129,7 @@ function renderLiveTradeHistory(list){
       btn_select_all: '全选',
       btn_select_none: '全不选',
       btn_send_once: '发送一次',
+      min_1: '1分钟',
       min_3: '3分钟',
       min_5: '5分钟',
       min_10: '10分钟',
@@ -1205,6 +1226,7 @@ function renderLiveTradeHistory(list){
       btn_select_all: 'Select All',
       btn_select_none: 'Select None',
       btn_send_once: 'Send Once',
+      min_1: '1 min',
       min_3: '3 min',
       min_5: '5 min',
       min_10: '10 min',
@@ -1786,7 +1808,7 @@ function renderLiveTradeHistory(list){
       }
     }
 
-    function toggleAutoExec(){
+  function toggleAutoExec(){
       autoExecEnabled = !autoExecEnabled;
       if (autoExecBtn) autoExecBtn.textContent = tr(autoExecEnabled ? 'auto_exec_on' : 'auto_exec_off');
       // 显示开关视觉状态
@@ -1803,8 +1825,53 @@ function renderLiveTradeHistory(list){
         }
       } catch{}
       if (aiOpsStatusEl) aiOpsStatusEl.textContent = `${tr('parse_status_prefix')}${autoExecEnabled ? tr('exec_on') : tr('exec_off')}`;
-      recalcAutoUptime();
+    recalcAutoUptime();
+  }
+
+  function saveAutoCloseCfg(){
+    try { localStorage.setItem(AUTO_CLOSE_CFG_KEY, JSON.stringify({ enabled: autoCloseEnabled, threshold: autoCloseThreshold })); } catch {}
+  }
+  function updateAutoCloseBtnText(){
+    const btn = document.getElementById('autoCloseSwitchBtn');
+    if (btn) btn.textContent = autoCloseEnabled ? '自动结单：开启' : '自动结单：关闭';
+    try {
+      if (btn){
+        btn.classList.toggle('toggle-on', !!autoCloseEnabled);
+        btn.classList.toggle('toggle-off', !autoCloseEnabled);
+      }
+    } catch{}
+  }
+  function toggleAutoClose(){
+    autoCloseEnabled = !autoCloseEnabled;
+    updateAutoCloseBtnText();
+    saveAutoCloseCfg();
+  }
+  function setAutoCloseThresholdFromInput(){
+    const el = document.getElementById('autoCloseThresholdInput');
+    const v = Number(el?.value || 0);
+    autoCloseThreshold = (Number.isFinite(v) && v > 0) ? v : 0;
+    saveAutoCloseCfg();
+  }
+  async function maybeAutoClose(){
+    if (!autoCloseEnabled) return;
+    const th = Number(autoCloseThreshold || 0);
+    if (!th) return;
+    const acc = latestLiveAccount || {};
+    const up = Number(acc.totalUnrealizedProfit || 0);
+    if (Math.abs(up) < th) return;
+    try {
+      await execLiveOp({ action:'close_all' });
+      const syms = new Set();
+      try { (Array.isArray(latestLiveRisks)?latestLiveRisks:[]).forEach(r=>{ const s=String(r.symbol||'').toUpperCase(); if (s) syms.add(s); }); } catch{}
+      try { (Array.isArray(latestLiveOpenOrders)?latestLiveOpenOrders:[]).forEach(o=>{ const s=String(o.symbol||'').toUpperCase(); if (s) syms.add(s); }); } catch{}
+      for (const s of syms){
+        try { await binanceSignedDirect('DELETE', '/fapi/v1/allOpenOrders', { symbol: s, recvWindow: 30000 }); } catch{}
+      }
+      setSimStatus('状态：已触发自动结单（先平仓后撤单）');
+    } catch(e){
+      setSimStatus(`状态：自动结单失败：${e?.message||e}`);
     }
+  }
 
     // 本地存储键名
     const KEY_STORAGE = 'ai_api_key';
@@ -2011,7 +2078,7 @@ function renderLiveTradeHistory(list){
       const dsCfg = (window.AI_CONFIG && window.AI_CONFIG.providers && window.AI_CONFIG.providers.deepseek) || {};
       const url = dsCfg.url || 'https://api.deepseek.com/v1/chat/completions';
       const body = {
-        model: dsCfg.model || 'deepseek-chat',
+        model: dsCfg.model || 'deepseek-reasoner',
         messages: [
           {
             role: 'system',
@@ -2022,6 +2089,7 @@ function renderLiveTradeHistory(list){
             content: prompt
           }
         ],
+        thinking: (dsCfg.thinking ?? { type: 'enabled' }),
         temperature: (dsCfg.temperature ?? 0.7),
         max_tokens: (dsCfg.max_tokens ?? 2048),
         top_p: (dsCfg.top_p ?? 0.95),
@@ -2072,11 +2140,12 @@ function renderLiveTradeHistory(list){
       const instruct = req.fallbackJsonInstruction || '请仅输出一个JSON对象，形如 {"ops":[...]} ，不要输出任何其他文本。';
       const url = dsCfg.url || 'https://api.deepseek.com/v1/chat/completions';
       const body = {
-        model: dsCfg.model || 'deepseek-chat',
+        model: dsCfg.model || 'deepseek-reasoner',
         messages: [
           { role: 'system', content: instruct },
           { role: 'user', content: prompt }
         ],
+        thinking: (dsCfg.thinking ?? { type: 'enabled' }),
         temperature: (dsCfg.fallbackJson?.temperature ?? 0.2),
         max_tokens: (dsCfg.fallbackJson?.max_tokens ?? 1024),
         top_p: (dsCfg.top_p ?? 0.95),
@@ -2104,7 +2173,7 @@ function renderLiveTradeHistory(list){
         else if (isDeepseek) url = 'https://api.deepseek.com/v1/chat/completions';
         else if (isQwen) url = (cfg.region === 'cn' ? 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions' : 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions');
       }
-      const model = cfg.model || (isGemini ? 'gemini-2.5-pro' : (isDeepseek ? 'deepseek-chat' : 'qwen-max'));
+      const model = cfg.model || (isGemini ? 'gemini-2.5-pro' : (isDeepseek ? 'deepseek-reasoner' : 'qwen-max'));
       const body = {
         model,
         messages: [
@@ -2116,6 +2185,9 @@ function renderLiveTradeHistory(list){
         top_p: (cfg.top_p ?? 0.95),
         stream: (cfg.stream ?? false)
       };
+      if (isDeepseek) {
+        body.thinking = (cfg.thinking ?? { type: 'enabled' });
+      }
       const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` };
       let res = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body) });
       if (!res.ok) {
@@ -2155,13 +2227,14 @@ function renderLiveTradeHistory(list){
         else if (isDeepseek) url = 'https://api.deepseek.com/v1/chat/completions';
         else if (isQwen) url = (cfg.region === 'cn' ? 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions' : 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions');
       }
-      const model = cfg.model || (isGemini ? 'gemini-2.5-pro' : (isDeepseek ? 'deepseek-chat' : 'qwen-max'));
+      const model = cfg.model || (isGemini ? 'gemini-2.5-pro' : (isDeepseek ? 'deepseek-reasoner' : 'qwen-max'));
       const body = {
         model,
         messages: [
           { role: 'system', content: instruct },
           { role: 'user', content: prompt }
         ],
+        ...(isDeepseek ? { thinking: (cfg.thinking ?? { type: 'enabled' }) } : {}),
         temperature: (cfg.fallbackJson?.temperature ?? 0.2),
         max_tokens: (cfg.fallbackJson?.max_tokens ?? 1024),
         top_p: (cfg.top_p ?? 0.95),
@@ -2395,6 +2468,17 @@ function renderLiveTradeHistory(list){
     if (autoExecBtn) autoExecBtn.addEventListener('click', toggleAutoExec);
     const aiAutoSwitchBtn = document.getElementById('aiAutoSwitchBtn');
     if (aiAutoSwitchBtn) aiAutoSwitchBtn.addEventListener('click', toggleAutoExec);
+    const autoCloseBtn = document.getElementById('autoCloseSwitchBtn');
+    if (autoCloseBtn) autoCloseBtn.addEventListener('click', toggleAutoClose);
+    const autoCloseInput = document.getElementById('autoCloseThresholdInput');
+    if (autoCloseInput) autoCloseInput.addEventListener('change', setAutoCloseThresholdFromInput);
+    try {
+      const cfg = JSON.parse(localStorage.getItem(AUTO_CLOSE_CFG_KEY) || '{}');
+      autoCloseEnabled = !!cfg.enabled;
+      autoCloseThreshold = Number(cfg.threshold || 0) || 0;
+      if (autoCloseInput) autoCloseInput.value = autoCloseThreshold ? String(autoCloseThreshold) : '';
+      updateAutoCloseBtnText();
+    } catch{}
   }
 
   // ====== 合约模拟盘 ======

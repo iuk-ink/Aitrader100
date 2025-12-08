@@ -13,7 +13,8 @@
       },
       deepseek: {
         url: 'https://api.deepseek.com/v1/chat/completions',
-        model: 'deepseek-chat',
+        model: 'deepseek-reasoner',
+        thinking: { type: 'enabled' },
         temperature: 0.7,
         max_tokens: 4096,
         top_p: 0.95,

@@ -208,6 +208,7 @@
           <div class="ai-row send-row">
             <button id="sendOnceBtn" class="primary" data-i18n="btn_send_once">发送一次</button>
             <select id="autoIntervalSelect">
+              <option value="1" data-i18n="min_1">1分钟</option>
               <option value="3" selected data-i18n="min_3">3分钟</option>
               <option value="5" data-i18n="min_5">5分钟</option>
               <option value="10" data-i18n="min_10">10分钟</option>
@@ -250,6 +251,8 @@
               <button id="cancelAllBtn">撤销全部委托</button>
               <button id="closeAllBtn">平所有持仓</button>
               <button id="aiAutoSwitchBtn">AI自动操盘：关闭</button>
+              <input id="autoCloseThresholdInput" class="auto-close-input" type="number" placeholder="结单阈值(USDT)" step="0.01" />
+              <button id="autoCloseSwitchBtn">自动结单：关闭</button>
             </div>
             <div id="simStatus" class="muted">状态：等待</div>
           </div>
